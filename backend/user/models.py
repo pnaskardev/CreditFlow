@@ -1,14 +1,14 @@
-
 import uuid
 from django.db import models
+
 
 class CustomerManager(models.Manager):
     def create(self, **kwargs):
         # Perform custom validation logic here
         email = kwargs.get('email')
-        name=kwargs.get('name')
-        annual_income=kwargs.get('annual_income')
-        adhaar_id=kwargs.get('adhaar_id')
+        name = kwargs.get('name')
+        annual_income = kwargs.get('annual_income')
+        adhaar_id = kwargs.get('adhaar_id')
         if not email:
             raise ValueError("User must have an email address")
         if annual_income is None or annual_income < 0:
@@ -19,6 +19,7 @@ class CustomerManager(models.Manager):
             raise ValueError("User must have an aadhar id")
 
         return super().create(**kwargs)
+
 
 class Customer(models.Model):
     adhaar_id = models.UUIDField(
@@ -32,9 +33,18 @@ class Customer(models.Model):
     # is_staff = models.BooleanField(default=False)
     # is_active = models.BooleanField(default=True)
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['adhaar_id','name', 'annual_income', ]
+    REQUIRED_FIELDS = ['adhaar_id', 'name', 'annual_income', ]
 
     objects = CustomerManager()
 
     def __str__(self):
         return self.email
+
+
+class CreditScore(models.Model):
+    adhaar_id = models.ForeignKey(
+        'Customer', on_delete=models.CASCADE, related_name='credit_score', unique=True)
+    credit_score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Credit Score of {self.adhaar_id} is {self.credit_score}"
