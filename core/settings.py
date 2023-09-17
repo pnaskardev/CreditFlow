@@ -69,10 +69,6 @@ TEMPLATES = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = (
-    ('django.contrib.auth.backends.ModelBackend'),
-)
-
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
@@ -86,16 +82,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'postgres', 
-#         'USER': 'postgres', 
-#         'PASSWORD': 'test123',
-#         'HOST': '127.0.0.1', 
-#         'PORT': '5432',
-#     }
-# }
 
 
 # Password validation
@@ -138,5 +124,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# AUTH_USER_MODEL = 'user.User'
