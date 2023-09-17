@@ -74,8 +74,8 @@ DATABASES = {
 
 # =========== CELERY CONFIGURATION ===========
 
-# CELERY_RESULT_BACKEND = 'django-db'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 # CELERY_CACHE_BACKEND = 'django-cache'
 
