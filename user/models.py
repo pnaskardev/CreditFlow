@@ -73,8 +73,8 @@ class CustomerManager(models.Manager):
             raise ValueError("Annual income must be a non-negative value")
         if not name:
             raise ValueError("User must have a name")
-        if not adhaar_id:
-            raise ValueError("User must have an aadhar id")
+        # if not adhaar_id:
+        #     raise ValueError("User must have an aadhar id")
 
         return super().create(**kwargs)
 
