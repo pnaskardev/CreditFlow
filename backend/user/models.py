@@ -42,8 +42,8 @@ class Customer(models.Model):
 
 
 class CreditScore(models.Model):
-    adhaar_id = models.ForeignKey(
-        'Customer', on_delete=models.CASCADE, related_name='credit_score', unique=True)
+    adhaar_id = models.OneToOneField(
+        'Customer', primary_key=True,on_delete=models.CASCADE, related_name='credit_score', unique=True)
     credit_score = models.IntegerField(default=0)
 
     def __str__(self):
