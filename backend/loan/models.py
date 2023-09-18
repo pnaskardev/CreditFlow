@@ -5,25 +5,11 @@ from user.models import Customer
 
 class EMI(models.Model):
     loan=models.ForeignKey('LoanApplication',on_delete=models.CASCADE)
-    emi_date=models.DateTimeField()
+    emi_date=models.DateTimeField(unique=True)
     emi_amount=models.DecimalField(max_digits=10,decimal_places=2)
-
-class LoanTypeLimit(models.Model):
-    LOAN_TYPES = (
-        ('Car', 'Car Loan'),
-        ('Home', 'Home Loan'),
-        ('Education', 'Educational Loan'),
-        ('Personal', 'Personal Loan'),
-    )
-
-    loan_type = models.CharField(
-        max_length=20, choices=LOAN_TYPES, unique=True)
-    max_loan_amount = models.DecimalField(
-        max_digits=10, decimal_places=2)  # In rupees
-
-    def __str__(self):
-        return self.loan_type
-
+    paid=models.BooleanField(default=False)
+    amount_paid=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
+    amount_due=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
 
 # LoanApplication model
 class LoanApplication(models.Model):

@@ -25,7 +25,7 @@ def calculate_emi_due_dates(loan_amount, interest_rate, tenure, monthly_income, 
     # Rounded to 2 decimal places
     total_amount_payable = round(emi * int(tenure), 2)
     print(current_date)
-    current_date=datetime.strptime(current_date,"%Y-%m-%dT%H:%M:%S.%fZ")
+    current_date = datetime.strptime(current_date, "%Y-%m-%dT%H:%M:%S.%fZ")
     for i in range(int(tenure)):
         # Calculate the first day of the next month
         first_day_of_next_month = (current_date+timedelta(days=32)).replace(
@@ -35,11 +35,12 @@ def calculate_emi_due_dates(loan_amount, interest_rate, tenure, monthly_income, 
         emi_schedule.append({
             'date': first_day_of_next_month.strftime("%Y-%m-%d"),
             # Rounded to 2 decimal places
-            'amount_due': round(total_amount_payable - round(emi, 2),2)
+            'amount_due': round(total_amount_payable - round(emi, 2), 2),
+            'emi_amount': round(emi, 2),
         })
         total_amount_payable = total_amount_payable - round(emi, 2)
-        if total_amount_payable<0.00:
-            total_amount_payable=0
+        if total_amount_payable < 0.00:
+            total_amount_payable = 0
         # Move to the next month
         current_date = first_day_of_next_month
 

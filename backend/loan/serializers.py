@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from . utils import calculate_emi_due_dates
-from loan.models import LoanApplication
+from loan.models import LoanApplication, EMI
 
 
 class LoanApplicationSerializer(serializers.ModelSerializer):
@@ -9,7 +9,6 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoanApplication
         fields = '__all__'
-
 
     def validate(self, attrs):
         loan_type = attrs.get('loan_type')
@@ -52,16 +51,30 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
 
         # Convert annual rate of interest to monthly rate
         monthly_rate = (int(interest_rate) / 100) / 12
-        
+
         # Calculate the denominator part of the formula
         denominator = ((1 + monthly_rate) ** int(tenure)) - 1
 
         # Calculate EMI using the formula
-        emi = (int(loan_amount) * monthly_rate * ((1 + monthly_rate) ** int(tenure))) / denominator
-        
+        emi = (int(loan_amount) * monthly_rate *
+               ((1 + monthly_rate) ** int(tenure))) / denominator
+
         max_allowed_emi = 0.60 * monthly_income
 
         if emi > max_allowed_emi:
             raise serializers.ValidationError(
                 "EMI cannot exceed 60% of monthly income.")
         return attrs
+
+
+class PayEMISerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EMI
+        fields = ['loan_id', 'emi_amount']
+
+class RetrieveEMISerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EMI
+        fields = '__all__'
