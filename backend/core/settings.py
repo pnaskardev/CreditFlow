@@ -72,6 +72,18 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'postgres'),  # Use environment variable or default name
+#         'USER': os.getenv('POSTGRES_USER', 'postgres'),  # Use environment variable or default username
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'test123'),  # Use environment variable or default password
+#         'HOST': 'postgres',  # Use the service name of the PostgreSQL container
+#         'PORT': '5432',  # The default PostgreSQL port
+#     }
+# }
+
+
 # =========== CELERY CONFIGURATION ===========
 
 CELERY_RESULT_BACKEND = 'django-db'

@@ -4,6 +4,16 @@ services:
   redis:
     image: redis:7.0.11-alpine
 
+  postgres:
+    container_name: postgres
+    image: postgres:14
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test123
+    ports:
+      - 5431:5432  # Map the PostgreSQL port if needed
+
   django:
     container_name: django
     build:
