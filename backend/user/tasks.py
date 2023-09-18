@@ -22,6 +22,8 @@ def calculate_credit_score(uuid):
         max_account_balance = 1000000
         min_account_balance = 100000
 
+        credit_sum=0
+        debit_sum=0
         if os.path.exists(csv_file_path):
             with open("transactions_data Backend.csv", 'r') as csvfile:
                 csvreader = csv.reader(csvfile)

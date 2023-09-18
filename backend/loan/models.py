@@ -45,27 +45,4 @@ class LoanApplication(models.Model):
     disbursement_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username}'s {self.get_loan_type_display()} Loan Application"
-
-    # def clean(self):
-    #     # Check credit score, annual income, and loan amount conditions
-    #     if self.user.credit_score < 450:
-    #         raise ValidationError(
-    #             "Credit score must be >= 450 to apply for a loan.")
-
-    #     if self.user.annual_income < 150000:
-    #         raise ValidationError(
-    #             "Annual income must be >= Rs. 1,50,000 to apply for a loan.")
-
-    #     if self.loan_type == 'Car' and self.loan_amount > 750000:
-    #         raise ValidationError(
-    #             "Car loan amount cannot exceed Rs. 7,50,000.")
-    #     elif self.loan_type == 'Home' and self.loan_amount > 8500000:
-    #         raise ValidationError(
-    #             "Home loan amount cannot exceed Rs. 85,00,000.")
-    #     elif self.loan_type == 'Education' and self.loan_amount > 5000000:
-    #         raise ValidationError(
-    #             "Educational loan amount cannot exceed Rs. 50,00,000.")
-    #     elif self.loan_type == 'Personal' and self.loan_amount > 1000000:
-    #         raise ValidationError(
-    #             "Personal loan amount cannot exceed Rs. 10,00,000.")
+        return f"{self.user.name}'s {self.get_loan_type_display()} Loan Application"

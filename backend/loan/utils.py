@@ -1,36 +1,46 @@
 from datetime import datetime, timedelta
-from rest_framework.response import Response
 
-def calculate_emi_due_dates(loan_amount, interest_rate, tenure, monthly_income):
+
+def calculate_emi_due_dates(loan_amount, interest_rate, tenure, monthly_income, disbursement_date):
     # Constants
     DAYS_IN_MONTH = 30  # Assuming an average of 30 days in a month
 
-    # Calculate monthly interest rate
-    monthly_interest_rate = (interest_rate / 100) / 12
+    # Convert annual rate of interest to monthly rate
+    monthly_rate = (int(interest_rate) / 100) / 12
 
-    # Calculate EMI using the standard EMI calculation formula
-    emi = loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** tenure
-    emi /= ((1 + monthly_interest_rate) ** tenure) - 1
+    # Calculate the denominator part of the formula
+    denominator = ((1 + monthly_rate) ** int(tenure)) - 1
 
-    # Check if total interest earned is > 10000
-    total_interest = (emi * tenure) - loan_amount
-    if total_interest <= 10000:
-        return Response({'message':'Total interest earned should be > Rs. 10,000.'})
+    # Calculate EMI using the formula
+    emi = (int(loan_amount) * monthly_rate *
+           ((1 + monthly_rate) ** int(tenure))) / denominator
 
-    # Check if EMI amount is at most 60% of monthly income
-    if emi > (0.60 * (monthly_income / DAYS_IN_MONTH)):
-        return Response({'message':'EMI amount should be at most 60%\ of monthly income.'})
+    # Calculate EMI due dates and amounts
+    emi_schedule = []
 
-    # Calculate EMI due dates starting from the following month
-    emi_due_dates = []
     # Get the current date
-    current_date = datetime.now()
+    current_date = disbursement_date
 
-    # Calculate the first day of the next month
-    first_day_of_next_month = current_date.replace(day=1, month=current_date.month + 1)
+    # Calculate the total amount payable
+    # Rounded to 2 decimal places
+    total_amount_payable = round(emi * int(tenure), 2)
+    print(current_date)
+    current_date=datetime.strptime(current_date,"%Y-%m-%dT%H:%M:%S.%fZ")
+    for i in range(int(tenure)):
+        # Calculate the first day of the next month
+        first_day_of_next_month = (current_date+timedelta(days=32)).replace(
+            day=1)
 
-    for _ in range(tenure):
-        current_date += timedelta(days=DAYS_IN_MONTH)
-        emi_due_dates.append(current_date)
+        # Calculate the EMI amount for the current month
+        emi_schedule.append({
+            'date': first_day_of_next_month.strftime("%Y-%m-%d"),
+            # Rounded to 2 decimal places
+            'amount_due': round(total_amount_payable - round(emi, 2),2)
+        })
+        total_amount_payable = total_amount_payable - round(emi, 2)
+        if total_amount_payable<0.00:
+            total_amount_payable=0
+        # Move to the next month
+        current_date = first_day_of_next_month
 
-    return emi_due_dates, emi
+    return emi_schedule
