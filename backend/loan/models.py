@@ -3,6 +3,11 @@ from django.db import models
 from user.models import Customer
 
 
+class EMI(models.Model):
+    loan=models.ForeignKey('LoanApplication',on_delete=models.CASCADE)
+    emi_date=models.DateTimeField()
+    emi_amount=models.DecimalField(max_digits=10,decimal_places=2)
+
 class LoanTypeLimit(models.Model):
     LOAN_TYPES = (
         ('Car', 'Car Loan'),
@@ -32,10 +37,12 @@ class LoanApplication(models.Model):
 
     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
     # loan_type = models.ForeignKey('LoanTypeLimit', on_delete=models.CASCADE)
-    loan_type = models.CharField(choices=LOAN_TYPES)
+    loan_type = models.CharField(choices=LOAN_TYPES, max_length=10)
     loan_amount = models.DecimalField(
         max_digits=10, decimal_places=2)  # In rupees
-    application_date = models.DateTimeField(auto_now_add=True)
+    interest_rate=models.DecimalField(max_digits=10,decimal_places=2)
+    term_period=models.IntegerField() # In months
+    disbursement_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username}'s {self.get_loan_type_display()} Loan Application"

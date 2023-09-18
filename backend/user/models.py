@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 from django.db import models
 
@@ -48,3 +49,6 @@ class CreditScore(models.Model):
 
     def __str__(self):
         return f"Credit Score of {self.adhaar_id} is {self.credit_score}"
+
+    def get_credit_score(self):
+        return self.credit_score
