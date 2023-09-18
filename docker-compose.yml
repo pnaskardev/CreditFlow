@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+
+  postgres:
+    container_name: postgres
+    image: postgres:14
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test123
+    ports:
+      - 5431:5432  # Map the PostgreSQL port if needed
+
+  django:
+    container_name: django
+    build:
+      context: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+
+    volumes:
+      - ./backend:/user/src/app
+    ports:
+      - 8001:8000
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-wnh$i2w4g-(e2!0hgj$aw9%$wiu4)najm0@c!jdq5++^w^(!$y
+      - ALLOWED_HOSTS=localhost, 127.0.0.1
+  
+
+  celery:
+    container_name: celery
+    build:
+      context: ./backend
+    command: celery --app=core worker -l INFO
+    volumes:
+      - ./backend:/user/src/app
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-wnh$i2w4g-(e2!0hgj$aw9%$wiu4)najm0@c!jdq5++^w^(!$y
+      - ALLOWED_HOSTS=localhost, 127.0.0.1
+
+    depends_on:
+      - redis
