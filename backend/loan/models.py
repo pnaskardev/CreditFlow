@@ -5,7 +5,7 @@ from user.models import Customer
 
 class EMI(models.Model):
     loan=models.ForeignKey('LoanApplication',on_delete=models.CASCADE)
-    emi_date=models.DateTimeField(unique=True)
+    emi_date=models.DateField(unique=True)
     emi_amount=models.DecimalField(max_digits=10,decimal_places=2)
     paid=models.BooleanField(default=False)
     amount_paid=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)

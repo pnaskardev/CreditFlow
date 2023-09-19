@@ -53,7 +53,7 @@ docker-compose -d --build
   - **Done automatically through sampple data**
 
 
-- **Loan Application Create View** `POST http://127.0.0.1:8000/api/apply-loan/`
+- **Loan Application Create View** `POST http://127.0.0.1:8001/api/apply-loan/`
   Apply for a loan.
 
 - | field |              |
@@ -65,7 +65,7 @@ docker-compose -d --build
   | `term_period`  | Required |
   | `disbursement_date`  | Required |
 
-- **Make Payment:** `PATCH http://127.0.0.1:8000/api/make-payment/<int:loan_id>/`
+- **Make Payment:** `PATCH http://127.0.0.1:8001/api/make-payment/<int:loan_id>/`
  Make Payment for a loan with loan_id.
 
 - | field |              |
@@ -73,7 +73,7 @@ docker-compose -d --build
   | `Loan_id:`  | Required |
   | `amount`  | Required |
 
-- **Get Loan Statement** `http://127.0.0.1:8000/api/get-statement/<int:loan_id>/`
+- **Get Loan Statement** `http://127.0.0.1:8001/api/get-statement/<int:loan_id>/`
   Get Loan Statement with loan_id
 - | field |              |
   | :-------- | :------------------------- |

@@ -66,23 +66,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'postgres'),  # Use environment variable or default name
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),  # Use environment variable or default username
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'test123'),  # Use environment variable or default password
-        'HOST': 'postgres',  # Use the service name of the PostgreSQL container
-        'PORT': '5432',  # The default PostgreSQL port
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'postgres'),  # Use environment variable or default name
+#         'USER': os.getenv('POSTGRES_USER', 'postgres'),  # Use environment variable or default username
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'test123'),  # Use environment variable or default password
+#         'HOST': 'postgres',  # Use the service name of the PostgreSQL container
+#         'PORT': '5432',  # The default PostgreSQL port
+#     }
+# }
 
 # =========== CELERY CONFIGURATION ===========
 

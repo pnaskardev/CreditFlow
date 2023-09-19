@@ -26,13 +26,14 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
             id = serializer.data.get('user')
             loan_applicant = Customer.objects.get(adhaar_id=id)
             annual_income = loan_applicant.annual_income
+
             # Calculate EMI due dates starting from the following month
             res = calculate_emi_due_dates(
                 loan_amount=float(serializer.data.get('loan_amount')),
                 interest_rate=float(serializer.data.get('interest_rate')),
                 tenure=int(serializer.data.get('term_period')),
-                monthly_income=int(annual_income)/12,
-                disbursement_date=disbursement_date
+                disbursement_date=disbursement_date,
+                annual_income=annual_income
             )
 
             for i in res:
