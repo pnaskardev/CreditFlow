@@ -10,6 +10,9 @@ class EMI(models.Model):
     paid=models.BooleanField(default=False)
     amount_paid=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
     amount_due=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
+    
+    def get_interes(self):
+        return self.loan.interst_rate
 
 # LoanApplication model
 class LoanApplication(models.Model):
@@ -24,11 +27,11 @@ class LoanApplication(models.Model):
     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
     # loan_type = models.ForeignKey('LoanTypeLimit', on_delete=models.CASCADE)
     loan_type = models.CharField(choices=LOAN_TYPES, max_length=10)
-    loan_amount = models.DecimalField(
-        max_digits=10, decimal_places=2)  # In rupees
+    loan_amount = models.PositiveIntegerField()  # In rupees
     interest_rate=models.DecimalField(max_digits=10,decimal_places=2)
     term_period=models.IntegerField() # In months
     disbursement_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.name}'s {self.get_loan_type_display()} Loan Application"
+

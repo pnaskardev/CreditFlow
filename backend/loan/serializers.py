@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 
-from . utils import calculate_emi, calculate_monthly_income
+from . utils import calculate_emi, calculate_monthly_income, calculate_interest_earned
 from loan.models import LoanApplication, EMI
 
 
@@ -20,7 +20,7 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
         interest_rate = attrs.get('interest_rate')
         tenure = attrs.get('term_period')
 
-        credit_score=None
+        credit_score = None
         try:
             # credit_score = get_object_or_404(attrs.get('user').credit_score)
             credit_score = attrs.get('user').credit_score
@@ -70,6 +70,13 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
         if emi > max_allowed_emi:
             raise serializers.ValidationError(
                 "EMI cannot exceed 60% of monthly income.")
+
+        total_interest_earned = calculate_interest_earned(
+            loan_amount=loan_amount, emi=emi, tenure=tenure)
+        if total_interest_earned < 10000:
+            raise serializers.ValidationError(
+                "Interest earned should be greater than 10000")
+
         return attrs
 
 
@@ -80,8 +87,34 @@ class PayEMISerializer(serializers.ModelSerializer):
         fields = ['loan_id', 'emi_amount']
 
 
-class RetrieveEMISerializer(serializers.ModelSerializer):
+class UpcomingEMISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EMI
-        fields = '__all__'
+        fields = ['emi_date', 'amount_due']
+
+
+class RetrieveEMISerializer(serializers.ModelSerializer):
+    principal_amount = serializers.SerializerMethodField()
+    interest_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EMI
+        fields = ['emi_date', 'emi_amount',
+                  'amount_due', 'principal_amount', 'interest_amount']
+
+    def get_principal_amount(self, obj):
+        print(obj)
+        interest_rate = obj.loan.interest_rate
+        monthly_interest_rate = (int(interest_rate) / 100) / 12
+        # print(monthly_interest_rate)
+        interest_component = round(
+            float(obj.loan.loan_amount) * monthly_interest_rate, 2)
+        principal_component = round(
+            float(obj.emi_amount) - interest_component, 2)
+        return principal_component
+
+    def get_interest_amount(self, obj):
+        principal_component = self.get_principal_amount(obj)
+        interest_component = float(obj.emi_amount)-principal_component
+        return interest_component

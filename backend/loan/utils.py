@@ -1,6 +1,14 @@
 from datetime import datetime, timedelta
 
 
+def calculate_interest_earned(loan_amount, emi, tenure):
+    loan_amount = int(loan_amount)
+    emi = float(emi)
+    tenure = int(tenure)
+    total_amount = round(emi*tenure, 2)
+    interest_earned = round(total_amount - loan_amount, 2)
+    return interest_earned
+
 def calculate_monthly_income(annual_income):
     monthly_income = int(annual_income)//12
     return monthly_income

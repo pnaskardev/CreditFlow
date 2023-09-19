@@ -3,9 +3,11 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 
+from django.shortcuts import get_object_or_404
+
 from user.models import Customer
-from . models import EMI
-from . serializers import LoanApplicationSerializer, PayEMISerializer, RetrieveEMISerializer
+from . models import EMI, LoanApplication
+from . serializers import LoanApplicationSerializer, PayEMISerializer, RetrieveEMISerializer, UpcomingEMISerializer
 from . utils import calculate_emi_due_dates
 
 
@@ -16,9 +18,8 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            
+
             # Calculate EMI due dates
-            emi_due_dates = []
             loan_id = serializer.data.get('id')
             disbursement_date = serializer.data.get('disbursement_date')
             # disbursement_date = datetime.strptime(disbursement_date,'%Y-%m-%d')
@@ -41,11 +42,9 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
                     loan_id=loan_id,
                     emi_date=i['date'],
                     emi_amount=i['emi_amount'],
-                    amount_due=float(
-                        i['emi_amount']*int(serializer.data.get('term_period')))
-                )
+                    amount_due=i['amount_due'])
 
-            return Response({"loan_id": loan_id, "loan_due_dates": res}, status=status.HTTP_201_CREATED)
+            return Response({"loan_id": loan_id, "loan_due_dates": res}, status=status.HTTP_200_OK)
         else:
             # Return an error response with validation errors
             response_data = {
@@ -73,8 +72,12 @@ class EMIRetrieveApiView(generics.RetrieveAPIView):
 
         loan_id = self.kwargs['loan_id']
 
-        emi_list = EMI.objects.filter(loan_id=loan_id, paid=True)
-        serializer=self.get_serializer(emi_list, many=True)
-        
-        return Response({"EMI List": serializer.data}, status=status.HTTP_200_OK)
-        
+        get_object_or_404(LoanApplication, id=loan_id)
+
+        past_emi_list = EMI.objects.filter(loan_id=loan_id, paid=True)
+        past_dues = self.get_serializer(past_emi_list, many=True)
+
+        upcoming_emi_list = EMI.objects.filter(loan_id=loan_id, paid=False)
+        upcoming_dues = UpcomingEMISerializer(upcoming_emi_list, many=True)
+
+        return Response({"past_transactions": past_dues.data, "upcoming_emi_list": upcoming_dues.data}, status=status.HTTP_200_OK)
