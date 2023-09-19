@@ -41,6 +41,10 @@ class Customer(models.Model):
     def __str__(self):
         return self.email
 
+        
+    def get_annual_income(self):
+        return self.annual_income
+
 
 class CreditScore(models.Model):
     adhaar_id = models.OneToOneField(
@@ -52,6 +56,3 @@ class CreditScore(models.Model):
 
     def get_credit_score(self):
         return self.credit_score
-    
-    def get_annual_income(self):
-        return self.annual_income

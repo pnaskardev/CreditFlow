@@ -22,7 +22,8 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
 
         credit_score=None
         try:
-            credit_score = get_object_or_404(attrs.get('user').credit_score)
+            # credit_score = get_object_or_404(attrs.get('user').credit_score)
+            credit_score = attrs.get('user').credit_score
         except:
             raise serializers.ValidationError(
                 "Credit score not found. Loan Cannot be disbursed.")
