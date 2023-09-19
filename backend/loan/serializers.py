@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.shortcuts import get_object_or_404
 
 from . utils import calculate_emi, calculate_monthly_income
 from loan.models import LoanApplication, EMI
@@ -14,11 +15,18 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
 
         # Get the information Attributes
         loan_type = attrs.get('loan_type')
-        credit_score = attrs.get('user').credit_score
         annual_income = attrs.get('user').annual_income
         loan_amount = attrs.get('loan_amount')
         interest_rate = attrs.get('interest_rate')
         tenure = attrs.get('term_period')
+
+        credit_score=None
+        try:
+            credit_score = get_object_or_404(attrs.get('user').credit_score)
+        except:
+            raise serializers.ValidationError(
+                "Credit score not found. Loan Cannot be disbursed.")
+
         credit_score = credit_score.get_credit_score()
 
         # Check credit score

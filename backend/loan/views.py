@@ -14,9 +14,9 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
+            
             # Calculate EMI due dates
             emi_due_dates = []
             loan_id = serializer.data.get('id')
