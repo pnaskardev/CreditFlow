@@ -18,6 +18,18 @@ class EMI(models.Model):
 
 
 # LoanApplication model
+"""
+Optimizations could have been done in the following model:
+ - adding LoanTypes as a separate model and using a foreign key to it
+
+LoanApplication model has the following properties:
+    - user: Foreign Key to Customer model
+    - loan_type: Type of loan
+    - loan_amount: Amount of loan
+    - interest_rate: Interest rate of loan
+    - term_period: Term period of loan
+    - disbursement_date: Date of disbursement of loan
+"""
 class LoanApplication(models.Model):
 
     LOAN_TYPES = (
@@ -29,13 +41,13 @@ class LoanApplication(models.Model):
 
     user = models.ForeignKey(
         Customer, related_name='user', on_delete=models.CASCADE)
-    # loan_type = models.ForeignKey('LoanTypeLimit', on_delete=models.CASCADE)
     loan_type = models.CharField(choices=LOAN_TYPES, max_length=10)
     loan_amount = models.PositiveIntegerField()  # In rupees
     interest_rate = models.DecimalField(max_digits=10, decimal_places=2)
     term_period = models.IntegerField()  # In months
     disbursement_date = models.DateTimeField(auto_now_add=True)
 
+    # Custom properties for the model
     @property
     def total_payable(self):
         return calculate_total_amount_payable(self.loan_amount, self.interest_rate, self.term_period)

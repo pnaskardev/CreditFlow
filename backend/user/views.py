@@ -10,6 +10,7 @@ from . tasks import calculate_credit_score
 from . serializers import CustomerSerializer
 
 
+# API View to register Customer and calculate Credit Score
 class RegisterUserApiView(generics.CreateAPIView):
     serializer_class=CustomerSerializer
 
@@ -18,7 +19,6 @@ class RegisterUserApiView(generics.CreateAPIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            # transaction.on_commit(lambda: calculate_credit_score.delay(serializer.data["adhaar_id"]))
             calculate_credit_score.delay(serializer.data["adhaar_id"])
             return Response({"unique_user_id":serializer.data.get('adhaar_id')}, status=status.HTTP_200_OK)
 

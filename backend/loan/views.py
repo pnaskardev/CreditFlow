@@ -10,6 +10,7 @@ from . models import EMI, LoanApplication
 from . serializers import LoanApplicationSerializer, PayEMISerializer, ListEmiSerializer, UpcomingEMISerializer
 
 
+# API View to create a new Loan Application
 class LoanApplicationCreateApiView(generics.CreateAPIView):
     serializer_class = LoanApplicationSerializer
 
@@ -30,7 +31,7 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
                 first_day_of_next_month = (current_date+timedelta(days=32)).replace(
                     day=1)
 
-                formatted_date=first_day_of_next_month.strftime("%Y-%m-%d")
+                formatted_date = first_day_of_next_month.strftime("%Y-%m-%d")
 
                 loan_due_dates.append(
                     {"date": formatted_date, "amount_due": amount_due})
@@ -46,6 +47,8 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
             }
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
+# API to pay EMI
+
 
 class PayEMIApiView(generics.CreateAPIView):
     serializer_class = PayEMISerializer
@@ -57,6 +60,7 @@ class PayEMIApiView(generics.CreateAPIView):
             return Response(status=status.HTTP_200_OK)
 
 
+# API to retrieve the list of upcoming EMIs and Past transactions
 class EMIRetrieveApiView(generics.ListAPIView):
     serializer_class = ListEmiSerializer
 
@@ -76,7 +80,7 @@ class EMIRetrieveApiView(generics.ListAPIView):
         upcoming_dues = []
         tenure_left = loan.tenure_left
 
-        last_emi_paid=EMI.objects.filter(loan_id=loan_id).last().emi_date
+        last_emi_paid = EMI.objects.filter(loan_id=loan_id).last().emi_date
         current_date = last_emi_paid
 
         for i in range(tenure_left):

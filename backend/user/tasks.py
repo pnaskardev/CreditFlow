@@ -4,12 +4,12 @@ import csv
 import logging
 from celery import shared_task
 from django.conf import settings
-from django.db import transaction
+
 
 
 logger = logging.getLogger(__name__)
 
-
+# Celery Task which is called after the creation of Customer
 @shared_task
 def calculate_credit_score(uuid):
     try:

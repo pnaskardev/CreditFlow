@@ -1,3 +1,4 @@
+# calculate_interest_earned function
 def calculate_interest_earned(loan_amount, emi, tenure):
     loan_amount = int(loan_amount)
     emi = float(emi)
@@ -6,11 +7,12 @@ def calculate_interest_earned(loan_amount, emi, tenure):
     interest_earned = round(total_amount - loan_amount, 2)
     return interest_earned
 
+# calculate_monthly_income function
 def calculate_monthly_income(annual_income):
     monthly_income = int(annual_income)//12
     return monthly_income
 
-
+# calculate_emi function
 def calculate_emi(interest_rate, loan_amount, tenure):
     # Convert annual rate of interest to monthly rate
     monthly_rate = (int(interest_rate) / 100) / 12
