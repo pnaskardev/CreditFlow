@@ -20,6 +20,6 @@ class RegisterUserApiView(generics.CreateAPIView):
             serializer.save()
             # transaction.on_commit(lambda: calculate_credit_score.delay(serializer.data["adhaar_id"]))
             calculate_credit_score.delay(serializer.data["adhaar_id"])
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({"unique_user_id":serializer.data.get('adhaar_id')}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

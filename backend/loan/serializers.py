@@ -11,9 +11,10 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LoanApplication
-        fields = ['user', 'loan_type', 'loan_amount','interest_rate', 'term_period','disbursement_date',
+        fields = ['user', 'loan_type', 'loan_amount', 'interest_rate', 'term_period', 'disbursement_date',
                   'total_payable', 'amount_due']
 
+    # All the loan related validation has been done here in the serializer
     def validate(self, attrs):
 
         # Get the information Attributes
@@ -74,6 +75,7 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "EMI cannot exceed 60% of monthly income.")
 
+        # total intereset earned should be greater than
         total_interest_earned = calculate_interest_earned(
             loan_amount=loan_amount, emi=emi, tenure=tenure)
         if total_interest_earned < 10000:
@@ -94,8 +96,9 @@ class PayEMISerializer(serializers.ModelSerializer):
         current_date = datetime.now().date()
         next_emi_date = (current_date + timedelta(days=32)).replace(day=1)
         # check if already paid
-        if len(EMI.objects.filter(loan_id=loan_id, emi_date=next_emi_date))!=0:
-            raise serializers.ValidationError("EMI for this date is already paid")
+        if len(EMI.objects.filter(loan_id=loan_id, emi_date=next_emi_date)) != 0:
+            raise serializers.ValidationError(
+                "EMI for this date is already paid")
         attrs['emi_date'] = next_emi_date
         return super().validate(attrs)
 
@@ -110,19 +113,21 @@ class UpcomingEMISerializer(serializers.ModelSerializer):
         fields = ['emi_date', 'amount_due']
 
 
-
 class ListEmiSerializer(serializers.ModelSerializer):
     principal_due = serializers.SerializerMethodField()
-    # interest_due = serializers.SerializerMethodField()
+    interest_due = serializers.SerializerMethodField()
     amount_due = serializers.SerializerMethodField()
 
     class Meta:
         model = EMI
         fields = ['emi_date', 'amount_paid',
-                  'amount_due', 'principal_due']
+                  'amount_due', 'principal_due', 'interest_due']
 
     def get_amount_due(self, obj):
         return obj.loan.amount_due
-    
+
     def get_principal_due(self, obj):
         return obj.loan.principal_due
+
+    def get_interest_due(self, obj):
+        return obj.loan.interest_due

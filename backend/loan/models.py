@@ -47,7 +47,7 @@ class LoanApplication(models.Model):
         amounts_paid = queryset.values_list('amount_paid', flat=True)
         total_amount_paid = sum(amounts_paid)  # Sum the extracted values
 
-        return float(self.total_payable)-float(total_amount_paid)
+        return round(float(self.total_payable)-float(total_amount_paid), 2)
 
     @property
     def tenure_left(self):
@@ -64,11 +64,23 @@ class LoanApplication(models.Model):
         total_emi_paid = sum(amounts_paid)
         months_paid = len(queryset)
         monthly_interest = (self.interest_rate/100)/12
-        total_interest_paid = months_paid*monthly_interest*total_emi_paid
+        total_interest_paid = months_paid*monthly_interest
 
         principal_due = self.loan_amount-(total_emi_paid-(total_interest_paid))
 
-        return principal_due
+        return round(principal_due, 2)
+
+    @property
+    def interest_due(self):
+        queryset = self.loan.all()
+        months_paid = len(queryset)
+        monthly_interest = (self.interest_rate/100)/12
+        total_interest_paid = months_paid*monthly_interest
+
+        interest_due = float(self.total_payable) - \
+            float(self.loan_amount)-float(total_interest_paid)
+
+        return round(interest_due, 2)
 
     def __str__(self):
         return f"{self.user.name}'s {self.get_loan_type_display()} Loan Application"

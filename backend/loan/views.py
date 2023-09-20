@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404
 from user.models import Customer
 from . models import EMI, LoanApplication
 from . serializers import LoanApplicationSerializer, PayEMISerializer, ListEmiSerializer, UpcomingEMISerializer
-from . utils import calculate_emi_due_dates
 
 
 class LoanApplicationCreateApiView(generics.CreateAPIView):
@@ -21,10 +20,9 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
 
             # Calculate EMI due dates
             loan_id = loan_application_instance.id
-            disbursement_date = loan_application_instance.disbursement_date
 
             loan_due_dates = []
-            current_date = disbursement_date
+            current_date = loan_application_instance.disbursement_date
             for i in range(int(loan_application_instance.term_period)):
                 amount_due = loan_application_instance.emi_amount
 
@@ -53,15 +51,10 @@ class PayEMIApiView(generics.CreateAPIView):
     serializer_class = PayEMISerializer
 
     def create(self, request, *args, **kwargs):
-        loan_id = request.data.get('loan')
-        emi_amount = request.data.get('amount_paid')
-
-        loan = LoanApplication.objects.get(id=loan_id)
-
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response({"message": "Success"}, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
 
 class EMIRetrieveApiView(generics.ListAPIView):
@@ -83,7 +76,8 @@ class EMIRetrieveApiView(generics.ListAPIView):
         upcoming_dues = []
         tenure_left = loan.tenure_left
 
-        current_date = datetime.now().date()
+        last_emi_paid=EMI.objects.filter(loan_id=loan_id).last().emi_date
+        current_date = last_emi_paid
 
         for i in range(tenure_left):
             next_emi_date = (current_date+timedelta(days=32)).replace(day=1)
