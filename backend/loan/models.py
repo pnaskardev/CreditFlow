@@ -1,18 +1,21 @@
 from django.db import models
 
+from datetime import datetime, timedelta
+
 from user.models import Customer
+from .utils import calculate_total_amount_payable, calculate_emi
 
 
 class EMI(models.Model):
-    loan=models.ForeignKey('LoanApplication',on_delete=models.CASCADE)
-    emi_date=models.DateField()
-    emi_amount=models.DecimalField(max_digits=10,decimal_places=2)
-    paid=models.BooleanField(default=False)
-    amount_paid=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
-    amount_due=models.DecimalField(max_digits=10,decimal_places=2,default=0.00)
-    
-    def get_interes(self):
-        return self.loan.interst_rate
+    loan = models.ForeignKey(
+        'LoanApplication', related_name='loan', on_delete=models.CASCADE)
+    emi_date = models.DateField()
+    amount_paid = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00)
+
+    def get_interest(self):
+        return self.loan.interest_rate
+
 
 # LoanApplication model
 class LoanApplication(models.Model):
@@ -24,14 +27,48 @@ class LoanApplication(models.Model):
         ('Personal', 'Personal Loan'),
     )
 
-    user = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        Customer, related_name='user', on_delete=models.CASCADE)
     # loan_type = models.ForeignKey('LoanTypeLimit', on_delete=models.CASCADE)
     loan_type = models.CharField(choices=LOAN_TYPES, max_length=10)
     loan_amount = models.PositiveIntegerField()  # In rupees
-    interest_rate=models.DecimalField(max_digits=10,decimal_places=2)
-    term_period=models.IntegerField() # In months
+    interest_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    term_period = models.IntegerField()  # In months
     disbursement_date = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def total_payable(self):
+        return calculate_total_amount_payable(self.loan_amount, self.interest_rate, self.term_period)
+
+    @property
+    def amount_due(self):
+        queryset = self.loan.all()
+        # Extract 'amount_paid' values as a flat list
+        amounts_paid = queryset.values_list('amount_paid', flat=True)
+        total_amount_paid = sum(amounts_paid)  # Sum the extracted values
+
+        return float(self.total_payable)-float(total_amount_paid)
+
+    @property
+    def tenure_left(self):
+        return self.term_period-len(self.loan.all())
+
+    @property
+    def emi_amount(self):
+        return round(calculate_emi(self.interest_rate, self.principal_due, self.tenure_left), 2)
+
+    @property
+    def principal_due(self):
+        queryset = self.loan.all()
+        amounts_paid = queryset.values_list('amount_paid', flat=True)
+        total_emi_paid = sum(amounts_paid)
+        months_paid = len(queryset)
+        monthly_interest = (self.interest_rate/100)/12
+        total_interest_paid = months_paid*monthly_interest*total_emi_paid
+
+        principal_due = self.loan_amount-(total_emi_paid-(total_interest_paid))
+
+        return principal_due
 
     def __str__(self):
         return f"{self.user.name}'s {self.get_loan_type_display()} Loan Application"
-

@@ -27,8 +27,14 @@ def calculate_emi(interest_rate, loan_amount, tenure):
 
     return emi
 
+def calculate_total_amount_payable(loan_amount, interest_rate, tenure):
 
-def calculate_emi_due_dates(loan_amount, interest_rate, tenure, annual_income, disbursement_date):
+    emi=calculate_emi(loan_amount=loan_amount,interest_rate=interest_rate,tenure=tenure)
+    total_amount_payable=emi*tenure
+    return total_amount_payable
+
+
+def calculate_emi_due_dates(loan_amount, interest_rate, tenure, disbursement_date):
 
     sanctioned_emi = calculate_emi(
         interest_rate=interest_rate, loan_amount=loan_amount, tenure=tenure)
@@ -43,7 +49,7 @@ def calculate_emi_due_dates(loan_amount, interest_rate, tenure, annual_income, d
     # Rounded to 2 decimal places
     total_amount_payable = round(sanctioned_emi * int(tenure), 2)
 
-    current_date = datetime.strptime(current_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    # current_date = datetime.strptime(current_date, "%Y-%m-%dT%H:%M:%S.%fZ")
     for i in range(int(tenure)):
         # Calculate the first day of the next month
         first_day_of_next_month = (current_date+timedelta(days=32)).replace(

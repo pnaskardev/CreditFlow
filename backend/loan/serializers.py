@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
+from datetime import datetime, timedelta
+
 
 from . utils import calculate_emi, calculate_monthly_income, calculate_interest_earned
 from loan.models import LoanApplication, EMI
@@ -9,7 +11,8 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LoanApplication
-        fields = '__all__'
+        fields = ['user', 'loan_type', 'loan_amount','interest_rate', 'term_period','disbursement_date',
+                  'total_payable', 'amount_due']
 
     def validate(self, attrs):
 
@@ -84,37 +87,42 @@ class PayEMISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EMI
-        fields = ['loan_id', 'emi_amount']
+        fields = ['loan', 'amount_paid']
+
+    def validate(self, attrs):
+        loan_id = attrs.get('loan')
+        current_date = datetime.now().date()
+        next_emi_date = (current_date + timedelta(days=32)).replace(day=1)
+        # check if already paid
+        if len(EMI.objects.filter(loan_id=loan_id, emi_date=next_emi_date))!=0:
+            raise serializers.ValidationError("EMI for this date is already paid")
+        attrs['emi_date'] = next_emi_date
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        return super().create(validated_data)
 
 
 class UpcomingEMISerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = EMI
+        model = LoanApplication
         fields = ['emi_date', 'amount_due']
 
 
-class RetrieveEMISerializer(serializers.ModelSerializer):
-    principal_amount = serializers.SerializerMethodField()
-    interest_amount = serializers.SerializerMethodField()
+
+class ListEmiSerializer(serializers.ModelSerializer):
+    principal_due = serializers.SerializerMethodField()
+    # interest_due = serializers.SerializerMethodField()
+    amount_due = serializers.SerializerMethodField()
 
     class Meta:
         model = EMI
-        fields = ['emi_date', 'emi_amount',
-                  'amount_due', 'principal_amount', 'interest_amount']
+        fields = ['emi_date', 'amount_paid',
+                  'amount_due', 'principal_due']
 
-    def get_principal_amount(self, obj):
-        print(obj)
-        interest_rate = obj.loan.interest_rate
-        monthly_interest_rate = (int(interest_rate) / 100) / 12
-        # print(monthly_interest_rate)
-        interest_component = round(
-            float(obj.loan.loan_amount) * monthly_interest_rate, 2)
-        principal_component = round(
-            float(obj.emi_amount) - interest_component, 2)
-        return principal_component
-
-    def get_interest_amount(self, obj):
-        principal_component = self.get_principal_amount(obj)
-        interest_component = float(obj.emi_amount)-principal_component
-        return interest_component
+    def get_amount_due(self, obj):
+        return obj.loan.amount_due
+    
+    def get_principal_due(self, obj):
+        return obj.loan.principal_due

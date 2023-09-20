@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 
 from user.models import Customer
 from . models import EMI, LoanApplication
-from . serializers import LoanApplicationSerializer, PayEMISerializer, RetrieveEMISerializer, UpcomingEMISerializer
+from . serializers import LoanApplicationSerializer, PayEMISerializer, ListEmiSerializer, UpcomingEMISerializer
 from . utils import calculate_emi_due_dates
 
 
@@ -17,34 +17,28 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            loan_application_instance = serializer.save()
 
             # Calculate EMI due dates
-            loan_id = serializer.data.get('id')
-            disbursement_date = serializer.data.get('disbursement_date')
-            # disbursement_date = datetime.strptime(disbursement_date,'%Y-%m-%d')
+            loan_id = loan_application_instance.id
+            disbursement_date = loan_application_instance.disbursement_date
 
-            id = serializer.data.get('user')
-            loan_applicant = Customer.objects.get(adhaar_id=id)
-            annual_income = loan_applicant.annual_income
+            loan_due_dates = []
+            current_date = disbursement_date
+            for i in range(int(loan_application_instance.term_period)):
+                amount_due = loan_application_instance.emi_amount
 
-            # Calculate EMI due dates starting from the following month
-            res = calculate_emi_due_dates(
-                loan_amount=float(serializer.data.get('loan_amount')),
-                interest_rate=float(serializer.data.get('interest_rate')),
-                tenure=int(serializer.data.get('term_period')),
-                disbursement_date=disbursement_date,
-                annual_income=annual_income
-            )
+                # Calculate the first day of the next month
+                first_day_of_next_month = (current_date+timedelta(days=32)).replace(
+                    day=1)
 
-            for i in res:
-                EMI.objects.create(
-                    loan_id=loan_id,
-                    emi_date=i['date'],
-                    emi_amount=i['emi_amount'],
-                    amount_due=i['amount_due'])
+                formatted_date=first_day_of_next_month.strftime("%Y-%m-%d")
 
-            return Response({"loan_id": loan_id, "loan_due_dates": res}, status=status.HTTP_200_OK)
+                loan_due_dates.append(
+                    {"date": formatted_date, "amount_due": amount_due})
+                current_date = first_day_of_next_month
+
+            return Response({"loan_id": loan_id, "loan_due_dates": loan_due_dates}, status=status.HTTP_200_OK)
         else:
             # Return an error response with validation errors
             response_data = {
@@ -55,29 +49,47 @@ class LoanApplicationCreateApiView(generics.CreateAPIView):
             return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PayEMIApiView(generics.UpdateAPIView):
+class PayEMIApiView(generics.CreateAPIView):
     serializer_class = PayEMISerializer
-    queryset = EMI.objects.all()
 
-    def update(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
+        loan_id = request.data.get('loan')
+        emi_amount = request.data.get('amount_paid')
+
+        loan = LoanApplication.objects.get(id=loan_id)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+        return Response({"message": "Success"}, status=status.HTTP_200_OK)
+
+
+class EMIRetrieveApiView(generics.ListAPIView):
+    serializer_class = ListEmiSerializer
+
+    def list(self, request, *args, **kwargs):
+
         loan_id = self.kwargs['loan_id']
 
-        return super().update(request, *args, **kwargs)
+        # IF loan exists then return the list of EMIs
+        # else return an error message
+        loan = get_object_or_404(LoanApplication, id=loan_id)
 
-
-class EMIRetrieveApiView(generics.RetrieveAPIView):
-    serializer_class = RetrieveEMISerializer
-
-    def get(self, request, *args, **kwargs):
-
-        loan_id = self.kwargs['loan_id']
-
-        get_object_or_404(LoanApplication, id=loan_id)
-
-        past_emi_list = EMI.objects.filter(loan_id=loan_id, paid=True)
+        # Get past paid EMI list
+        past_emi_list = EMI.objects.filter(loan_id=loan_id)
         past_dues = self.get_serializer(past_emi_list, many=True)
 
-        upcoming_emi_list = EMI.objects.filter(loan_id=loan_id, paid=False)
-        upcoming_dues = UpcomingEMISerializer(upcoming_emi_list, many=True)
+        # Create the list of upcoming dues
+        upcoming_dues = []
+        tenure_left = loan.tenure_left
 
-        return Response({"past_transactions": past_dues.data, "upcoming_emi_list": upcoming_dues.data}, status=status.HTTP_200_OK)
+        current_date = datetime.now().date()
+
+        for i in range(tenure_left):
+            next_emi_date = (current_date+timedelta(days=32)).replace(day=1)
+            emi_amount = loan.emi_amount
+            upcoming_dues.append(
+                {"date": next_emi_date, "amount_due": round(emi_amount, 2)})
+            current_date = next_emi_date
+
+        return Response({"past_transactions": past_dues.data, "upcoming_emi_list": upcoming_dues}, status=status.HTTP_200_OK)
